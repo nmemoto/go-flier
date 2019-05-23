@@ -60,7 +60,7 @@ func main() {
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(`https://www.flierinc.com/summary/list`+pageURL),
 		chromedp.Sleep(5*time.Second),
-		chromedp.Nodes(`//div[contains(@class, "summary-md")]//div[@class="summary-md"]/a/@href`, &links),
+		chromedp.Nodes(`//div[@class="summary-md"]/*/a/@href`, &links),
 	)
 	for _, v := range links {
 		str := v.Attributes[1]
