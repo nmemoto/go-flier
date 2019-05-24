@@ -57,18 +57,26 @@ func main() {
 	}
 
 	var links []*cdp.Node
+	var titles []*cdp.Node
+	var authors []*cdp.Node
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(`https://www.flierinc.com/summary/list`+pageURL),
 		chromedp.Sleep(5*time.Second),
 		chromedp.Nodes(`//div[@class="summary-md"]/*/a/@href`, &links),
+		chromedp.Nodes(`//div[@class="summary-md"]//div[@class="summary-title"]//text()`, &titles),
+		chromedp.Nodes(`//div[@class="summary-md"]//div[@class="summary-author"]/span[@class="pr5"][1]//text()`, &authors),
 	)
-	for _, v := range links {
-		str := v.Attributes[1]
-		rep := regexp.MustCompile(`/summary/([0-9]*)`)
-		i, _ := strconv.Atoi(rep.FindStringSubmatch(str)[1])
-		fmt.Fprintf(os.Stdout, "%#v\n", i)
-	}
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	for i, v := range links {
+		str := v.Attributes[1]
+		rep := regexp.MustCompile(`/summary/([0-9]*)`)
+		idx, _ := strconv.Atoi(rep.FindStringSubmatch(str)[1])
+		title := titles[i].NodeValue
+		author := authors[i].NodeValue
+		url := "https://www.flierinc.com/summary" + str
+		fmt.Fprintf(os.Stdout, "%#v,%#v,%#v,%#v\n", idx, title, author, url)
 	}
 }
