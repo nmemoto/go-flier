@@ -77,6 +77,6 @@ func main() {
 		title := titles[i].NodeValue
 		author := authors[i].NodeValue
 		url := "https://www.flierinc.com/summary" + str
-		fmt.Fprintf(os.Stdout, "%#v,%#v,%#v,%#v\n", idx, title, author, url)
+		fmt.Fprintf(os.Stdout, "%v,%v,%v,%v\n", idx, title, author, url)
 	}
 }
