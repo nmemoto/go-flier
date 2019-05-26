@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
 	"flag"
 	"fmt"
 	"log"
@@ -61,22 +62,39 @@ func main() {
 	var authors []*cdp.Node
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(`https://www.flierinc.com/summary/list`+pageURL),
-		chromedp.Sleep(5*time.Second),
+		chromedp.Sleep(10*time.Second),
 		chromedp.Nodes(`//div[@class="summary-md"]/*/a/@href`, &links),
 		chromedp.Nodes(`//div[@class="summary-md"]//div[@class="summary-title"]//text()`, &titles),
 		chromedp.Nodes(`//div[@class="summary-md"]//div[@class="summary-author"]/span[@class="pr5"][1]//text()`, &authors),
 	)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "page %v is failed.\n", *page)
 		log.Fatal(err)
 	}
+
+	records := [][]string{}
 
 	for i, v := range links {
 		str := v.Attributes[1]
 		rep := regexp.MustCompile(`/summary/([0-9]*)`)
-		idx, _ := strconv.Atoi(rep.FindStringSubmatch(str)[1])
+		idx := rep.FindStringSubmatch(str)[1]
 		title := titles[i].NodeValue
 		author := authors[i].NodeValue
-		url := "https://www.flierinc.com/summary" + str
-		fmt.Fprintf(os.Stdout, "%v,%v,%v,%v\n", idx, title, author, url)
+		url := "https://www.flierinc.com" + str
+		records = append(records, []string{idx, title, author, url})
+	}
+
+	w := csv.NewWriter(os.Stdout)
+
+	for _, record := range records {
+		if err := w.Write(record); err != nil {
+			log.Fatalln("error writing record to csv:", err)
+		}
+	}
+
+	w.Flush()
+
+	if err := w.Error(); err != nil {
+		log.Fatal(err)
 	}
 }
